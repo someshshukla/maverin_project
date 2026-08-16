@@ -1,65 +1,96 @@
 import streamlit as st
 import requests
-import json
 import os
+import json
 
 # Page configuration
 st.set_page_config(
     page_title="3GPP Standards AI Assistant",
     page_icon="📡",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="centered",
+    initial_sidebar_state="collapsed"
 )
 
-# Custom CSS styling for premium 3GPP Telecom aesthetic
+# Custom CSS for ChatGPT-like sleek dark/light aesthetic
 st.markdown("""
 <style>
-    .main-header {
-        font-size: 2.2rem;
+    /* Hide default Streamlit padding */
+    .block-container {
+        padding-top: 2rem;
+        padding-bottom: 4rem;
+        max-width: 800px;
+    }
+    
+    /* Header styling */
+    .chat-title {
+        font-size: 1.8rem;
         font-weight: 700;
-        color: #0F172A;
+        color: var(--text-color, #0F172A);
+        text-align: center;
         margin-bottom: 0.2rem;
     }
-    .sub-header {
-        font-size: 1.05rem;
-        color: #475569;
+    .chat-subtitle {
+        font-size: 0.95rem;
+        color: var(--text-color, #64748B);
+        opacity: 0.8;
+        text-align: center;
         margin-bottom: 1.5rem;
     }
-    .grounded-badge {
-        display: inline-block;
+
+    /* Badges */
+    .badge-grounded {
+        display: inline-flex;
+        align-items: center;
         background-color: #DCFCE7;
         color: #15803D;
         font-weight: 600;
-        padding: 0.25rem 0.75rem;
+        font-size: 0.8rem;
+        padding: 0.2rem 0.6rem;
         border-radius: 9999px;
-        font-size: 0.9rem;
-        margin-bottom: 1rem;
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
     }
-    .refusal-badge {
-        display: inline-block;
+    .badge-refusal {
+        display: inline-flex;
+        align-items: center;
         background-color: #FEE2E2;
         color: #B91C1C;
         font-weight: 600;
-        padding: 0.25rem 0.75rem;
+        font-size: 0.8rem;
+        padding: 0.2rem 0.6rem;
         border-radius: 9999px;
-        font-size: 0.9rem;
-        margin-bottom: 1rem;
-    }
-    .citation-card {
-        background-color: #F8FAFC;
-        border-left: 4px solid #0EA5E9;
-        padding: 0.75rem 1rem;
-        border-radius: 0.375rem;
+        margin-top: 0.5rem;
         margin-bottom: 0.5rem;
-        font-size: 0.92rem;
     }
-    .evidence-block {
-        background-color: #F1F5F9;
-        border: 1px solid #CBD5E1;
-        padding: 0.75rem;
+
+    /* Citation Tags */
+    .citation-container {
+        margin-top: 0.75rem;
+        margin-bottom: 0.5rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+    }
+    .citation-chip {
+        background-color: rgba(14, 165, 233, 0.12);
+        border: 1px solid rgba(14, 165, 233, 0.3);
+        color: var(--text-color, #0F172A);
         border-radius: 0.375rem;
-        font-family: monospace;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.82rem;
+        font-weight: 500;
+    }
+
+    /* Evidence Block */
+    .evidence-passage {
+        background-color: rgba(148, 163, 184, 0.1);
+        border-left: 3px solid #0EA5E9;
+        padding: 0.6rem 0.8rem;
+        border-radius: 0.25rem;
         font-size: 0.85rem;
+        font-family: monospace;
+        color: var(--text-color, #1E293B);
+        margin-bottom: 0.5rem;
         white-space: pre-wrap;
     }
 </style>
@@ -68,119 +99,161 @@ st.markdown("""
 # API Endpoint
 API_URL = os.getenv("API_URL", "http://localhost:8000")
 
-st.markdown('<div class="main-header">📡 3GPP Standards AI Assistant</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-header">Grounded RAG System for 5G Telecommunications Specifications (TS 23.501, TS 23.502, TS 24.501, TS 38.331)</div>', unsafe_allow_html=True)
+# Initialize Chat History in Session State
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-# Sidebar with indexed document details
+# Sidebar for Controls, Quick Test Questions, and Corpus Info
 with st.sidebar:
-    st.header("📚 Document Corpus")
+    st.markdown("### ⚙️ Developer & Controls")
+    if st.button("🗑️ Clear Conversation", use_container_width=True):
+        st.session_state.messages = []
+        st.rerun()
+
+    st.divider()
+    st.markdown("### 💡 Quick Test Prompts")
+    prompt_to_send = None
+    if st.button("AMF Role in Registration", use_container_width=True):
+        prompt_to_send = "What is the role of the AMF during UE registration?"
+    if st.button("TS 24.501 T3510 Timer", use_container_width=True):
+        prompt_to_send = "According to TS 24.501, what is T3510?"
+    if st.button("5G Registration Steps", use_container_width=True):
+        prompt_to_send = "What happens during the 5G registration procedure?"
+    if st.button("UPF Key Functions", use_container_width=True):
+        prompt_to_send = "What are the main functions of the User Plane Function (UPF)?"
+    if st.button("Test Unanswerable Question", use_container_width=True):
+        prompt_to_send = "What is the optimal coffee brewing temperature for 5G engineers?"
+
+    st.divider()
+    st.markdown("### 📚 Indexed Corpus")
     try:
-        res = requests.get(f"{API_URL}/documents", timeout=3)
+        res = requests.get(f"{API_URL}/documents", timeout=2)
         if res.status_code == 200:
             docs = res.json()
-            st.success(f"Indexed Specifications: {len(docs)}")
+            st.success(f"Loaded Specifications: {len(docs)}")
             for d in docs:
-                with st.expander(f"TS {d['spec_number']} ({d['release']})"):
-                    st.write(f"**Title**: {d['title']}")
-                    st.write(f"**Version**: {d['version']}")
-                    st.write(f"**Chunks**: {d['chunk_count']}")
-        else:
-            st.warning("Backend API available, but no documents loaded.")
+                st.caption(f"• **TS {d['spec_number']}** ({d['release']}) - {d['chunk_count']} chunks")
     except Exception:
-        st.info("Local Ingestion active (Fallback mode).")
-        
+        st.caption("• **TS 23.501** (Rel-18)\n• **TS 23.502** (Rel-18)\n• **TS 24.501** (Rel-18)\n• **TS 38.331** (Rel-18)")
+
     st.divider()
-    st.markdown("### 🛡️ Safeguards")
-    st.markdown("- **Metadata Filtering**: Spec & Release Aware")
-    st.markdown("- **Hybrid Search**: Vector + BM25 RRF")
-    st.markdown("- **Reranker**: Cross-Encoder")
-    st.markdown("- **Evidence Verification**: Strict Refusal Threshold")
-    st.markdown("- **Claim Verification**: 1-Controlled Retry")
+    st.markdown("### 🛡️ RAG Safeguards")
+    st.caption("✓ Spec & Release Aware Retrieval\n✓ FAISS + BM25 Reciprocal Rank Fusion\n✓ Cross-Encoder Candidate Reranker\n✓ Evidence Sufficiency Threshold Check\n✓ Claim-Level Post-Gen Verification")
 
-# Demo Question Selector
-st.markdown("### 💡 Quick Test Questions")
-col_a, col_b, col_c, col_d, col_e = st.columns(5)
 
-selected_question = None
-if col_a.button("AMF Role", use_container_width=True):
-    selected_question = "What is the role of the AMF during UE registration?"
-if col_b.button("TS 24.501 T3510", use_container_width=True):
-    selected_question = "According to TS 24.501, what is T3510?"
-if col_c.button("Registration Steps", use_container_width=True):
-    selected_question = "What happens during the 5G registration procedure?"
-if col_d.button("UPF Function", use_container_width=True):
-    selected_question = "What are the main functions of the User Plane Function (UPF)?"
-if col_e.button("Unanswerable", use_container_width=True):
-    selected_question = "What is the optimal coffee brewing temperature for 5G engineers?"
+# Main ChatGPT Header
+st.markdown('<div class="chat-title">📡 3GPP Standards AI Assistant</div>', unsafe_allow_html=True)
+st.markdown('<div class="chat-subtitle">Grounded Q&A backed by official 3GPP specifications</div>', unsafe_allow_html=True)
 
-# Input box
-user_input = st.text_input("Ask a question about 3GPP standards:", value=selected_question or "", placeholder="e.g. What is the role of the AMF during UE registration?")
-submit_btn = st.button("Submit Question", type="primary")
 
-if submit_btn and user_input:
-    with st.spinner("Retrieving authoritative 3GPP evidence, reranking, and verifying claims..."):
-        try:
-            response = requests.post(
-                f"{API_URL}/chat",
-                json={"question": user_input},
-                timeout=10
-            )
-            if response.status_code == 200:
-                data = response.json()
-            else:
-                st.error(f"Error from server: {response.text}")
-                data = None
-        except Exception as e:
-            st.warning("Backend service offline. Processing query via direct python fallback...")
-            from app.query.query_parser import QueryParser
-            from app.retrieval.hybrid import HybridRetriever
-            from app.generation.generator import GroundedGenerator
-            
-            qp = QueryParser.parse_query(user_input)
-            retriever = HybridRetriever()
-            gen = GroundedGenerator()
-            chunks = retriever.retrieve(user_input, spec_filter=qp.get("specification"), release_filter=qp.get("release"))
-            resp_obj = gen.generate_answer(user_input, chunks)
-            data = resp_obj.dict()
-
-        if data:
-            st.divider()
-            
-            # Grounding Badge & Confidence
-            is_grounded = data.get("grounded", False)
-            confidence = data.get("confidence", 0.0) * 100
+# Render Existing Chat History
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
+        
+        if msg["role"] == "assistant":
+            # Display Grounded / Refusal Badge
+            is_grounded = msg.get("grounded", False)
+            confidence = msg.get("confidence", 0.0) * 100
             
             if is_grounded:
-                st.markdown(f'<div class="grounded-badge">✓ Grounded Answer (Confidence: {confidence:.0f}%)</div>', unsafe_allow_html=True)
-            else:
-                st.markdown(f'<div class="refusal-badge">⚠️ Evidence Insufficient / Refusal (Confidence: {confidence:.0f}%)</div>', unsafe_allow_html=True)
-                
-            st.markdown("### Answer")
-            st.markdown(data.get("answer", ""))
-            
-            # Sources Section
-            sources = data.get("sources", [])
+                st.markdown(f'<div class="badge-grounded">✓ Grounded (Confidence: {confidence:.0f}%)</div>', unsafe_allow_html=True)
+            elif "could not find sufficient evidence" in msg["content"].lower():
+                st.markdown(f'<div class="badge-refusal">⚠️ Insufficient Evidence / Refusal</div>', unsafe_allow_html=True)
+
+            # Display Citations directly below answer
+            sources = msg.get("sources", [])
             if sources:
-                st.markdown("### 📌 Citations & Sources")
-                cols = st.columns(len(sources)) if len(sources) <= 4 else st.columns(4)
-                for idx, src in enumerate(sources):
-                    with cols[idx % len(cols)]:
-                        st.markdown(
-                            f"""
-                            <div class="citation-card">
-                                <strong>TS {src['spec_number']}</strong> ({src['release']})<br/>
-                                <strong>Section {src['section']}</strong>: {src.get('section_title', '')}<br/>
-                                Page {src.get('page', 'N/A')}
-                            </div>
-                            """,
-                            unsafe_allow_html=True
-                        )
-                        
-            # Retrieved Evidence Section
-            evidence = data.get("evidence", [])
+                st.markdown("**Citations:**")
+                citation_html = '<div class="citation-container">'
+                for src in sources:
+                    citation_html += f'<div class="citation-chip">📖 TS {src["spec_number"]} ({src["release"]}) | Sec {src["section"]} | Pg {src.get("page", "N/A")}</div>'
+                citation_html += '</div>'
+                st.markdown(citation_html, unsafe_allow_html=True)
+
+            # Display Expandable Retrieved Evidence Drawer
+            evidence = msg.get("evidence", [])
             if evidence:
-                with st.expander(f"🔍 View Retrieved Evidence ({len(evidence)} chunks)"):
+                with st.expander(f"🔍 View Retrieved Evidence ({len(evidence)} passages)"):
                     for ev in evidence:
-                        st.markdown(f"**[Chunk: {ev['chunk_id']}]** | TS {ev['spec_number']} ({ev['release']}) | Section {ev['section']} ({ev['section_title']}) | Page {ev['page']} | **Relevance Score: {ev['score']:.4f}**")
-                        st.markdown(f'<div class="evidence-block">{ev["text"]}</div>', unsafe_allow_html=True)
-                        st.markdown("<br/>", unsafe_allow_html=True)
+                        st.markdown(f"**[Chunk: {ev['chunk_id']}]** | TS {ev['spec_number']} ({ev['release']}) | Section {ev['section']} | Score: `{ev['score']:.4f}`")
+                        st.markdown(f'<div class="evidence-passage">{ev["text"]}</div>', unsafe_allow_html=True)
+
+
+# Process User Input (either typed or triggered from sidebar)
+user_query = st.chat_input("Ask a question about 3GPP specifications...")
+active_query = user_query or prompt_to_send
+
+if active_query:
+    # Append & display User message
+    st.session_state.messages.append({"role": "user", "content": active_query})
+    with st.chat_message("user"):
+        st.markdown(active_query)
+
+    # Process Assistant Response
+    with st.chat_message("assistant"):
+        with st.spinner("Retrieving authoritative 3GPP evidence..."):
+            try:
+                response = requests.post(
+                    f"{API_URL}/chat",
+                    json={"question": active_query},
+                    timeout=5
+                )
+                if response.status_code == 200:
+                    data = response.json()
+                else:
+                    data = None
+            except Exception:
+                # Standalone Python RAG Engine execution
+                from app.query.query_parser import QueryParser
+                from app.retrieval.hybrid import HybridRetriever
+                from app.generation.generator import GroundedGenerator
+                
+                qp = QueryParser.parse_query(active_query)
+                retriever = HybridRetriever()
+                gen = GroundedGenerator()
+                chunks = retriever.retrieve(active_query, spec_filter=qp.get("specification"), release_filter=qp.get("release"))
+                resp_obj = gen.generate_answer(active_query, chunks)
+                data = resp_obj.dict()
+
+            if data:
+                answer_text = data.get("answer", "")
+                is_grounded = data.get("grounded", False)
+                confidence = data.get("confidence", 0.0)
+                sources = data.get("sources", [])
+                evidence = data.get("evidence", [])
+
+                # Render Answer text
+                st.markdown(answer_text)
+
+                # Render Grounded / Refusal Badge
+                if is_grounded:
+                    st.markdown(f'<div class="badge-grounded">✓ Grounded (Confidence: {confidence * 100:.0f}%)</div>', unsafe_allow_html=True)
+                elif "could not find sufficient evidence" in answer_text.lower():
+                    st.markdown(f'<div class="badge-refusal">⚠️ Insufficient Evidence / Refusal</div>', unsafe_allow_html=True)
+
+                # Render Citations Chips
+                if sources:
+                    st.markdown("**Citations:**")
+                    citation_html = '<div class="citation-container">'
+                    for src in sources:
+                        citation_html += f'<div class="citation-chip">📖 TS {src["spec_number"]} ({src["release"]}) | Sec {src["section"]} | Pg {src.get("page", "N/A")}</div>'
+                    citation_html += '</div>'
+                    st.markdown(citation_html, unsafe_allow_html=True)
+
+                # Render Retrieved Evidence Drawer
+                if evidence:
+                    with st.expander(f"🔍 View Retrieved Evidence ({len(evidence)} passages)"):
+                        for ev in evidence:
+                            st.markdown(f"**[Chunk: {ev['chunk_id']}]** | TS {ev['spec_number']} ({ev['release']}) | Section {ev['section']} | Score: `{ev['score']:.4f}`")
+                            st.markdown(f'<div class="evidence-passage">{ev["text"]}</div>', unsafe_allow_html=True)
+
+                # Store assistant response in session state
+                st.session_state.messages.append({
+                    "role": "assistant",
+                    "content": answer_text,
+                    "grounded": is_grounded,
+                    "confidence": confidence,
+                    "sources": sources,
+                    "evidence": evidence
+                })
