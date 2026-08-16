@@ -1,0 +1,50 @@
+Specification: TS 23.501
+Title: System Architecture for the 5G System (5GS)
+Release: Rel-18
+Version: 18.4.0
+Source URL: https://www.3gpp.org/ftp/Specs/archive/23_series/23.501/
+============================================================
+
+Chapter/Section: 5.1
+Section Title: General Concepts and Architecture Principles
+Page: 12
+----------------------------------------
+The 5G System architecture is defined as service-based and data-centric. The architecture supports data connectivity and services enabling deployments to use techniques such as Network Function Virtualization (NFV) and Software Defined Networking (SDN). The 5G system architecture consists of network functions (NFs) such as AMF, SMF, UPF, PCF, UDM, and AUSF.
+
+
+Chapter/Section: 5.3.2
+Section Title: Registration Management and Role of AMF
+Page: 42
+----------------------------------------
+The Access and Mobility Management Function (AMF) includes the following key functionalities:
+- Termination of RAN CP interface (N2).
+- Termination of NAS (N1), NAS ciphering and integrity protection.
+- Registration management, Connection management, Reachability management, Mobility Management.
+- Transport for User Plane (UP) security activation between UE and RAN.
+- Transport for Session Management messages between UE and SMF.
+- AMF performs authorization of UE registration and authentication handling in coordination with AUSF/UDM.
+During UE registration, the AMF processes the Registration Request received over N1 from the UE or forwarded over N2 by the gNB, allocates a 5G-GUTI if applicable, and manages the UE registration context.
+
+
+Chapter/Section: 5.6.1
+Section Title: Session Management and UPF Functions
+Page: 68
+----------------------------------------
+The User Plane Function (UPF) handles user plane processing. UPF functionality includes:
+- Anchor point for Intra-/Inter-RAT mobility (when applicable).
+- External PDU session point of interconnect to Data Network (DN).
+- Packet routing & forwarding (e.g. support of Uplink classifier to route traffic flows to an instance of a data network).
+- Packet inspection and Quality of Service (QoS) handling for user plane.
+- Downlink packet buffering and Downlink data notification triggering.
+
+
+Chapter/Section: 5.8.2
+Section Title: Service Based Interfaces and Network Functions
+Page: 95
+----------------------------------------
+The 5G System relies on Service Based Interfaces (SBI) in the Control Plane. Network Functions export services via HTTP/2 and JSON REST APIs.
+- Namf: Service provided by AMF.
+- Nsmf: Service provided by SMF.
+- Nudm: Service provided by UDM.
+- Npcf: Service provided by PCF.
+

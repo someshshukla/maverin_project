@@ -1,0 +1,1572 @@
+# Build a Production-Quality 3GPP Standards RAG Chatbot
+
+## 1. Role
+
+Act as a senior AI/ML engineer and full-stack engineer.
+
+Build a complete, working, production-quality Retrieval-Augmented Generation (RAG) chatbot whose primary knowledge source is official 3GPP telecommunications standards documentation.
+
+The project is being developed as a technical hiring assignment. The most important evaluation criteria are:
+
+1. Retrieval quality
+2. Minimal to near-zero hallucinations
+3. Grounded answers
+4. Accurate citations
+5. Correct handling of insufficient evidence
+6. Evaluation methodology and measurable results
+7. Clean, maintainable engineering
+8. A working end-to-end implementation
+
+Do NOT build a superficial chatbot demo. Build an actual RAG system with explicit mechanisms for preventing unsupported claims.
+
+---
+
+# 2. Core Objective
+
+Build a chatbot that can answer technical questions about 3GPP standards using the indexed 3GPP documents as the source of truth.
+
+Example question:
+
+"What is the role of the AMF during UE registration?"
+
+The system should:
+
+1. Understand the query.
+2. Identify relevant specification/release information if present.
+3. Retrieve relevant 3GPP passages.
+4. Combine semantic and lexical retrieval.
+5. Rerank the retrieved passages.
+6. Determine whether sufficient evidence exists.
+7. Generate an answer ONLY from the retrieved evidence.
+8. Attach precise citations to the answer.
+9. Verify that the generated claims are actually supported by the evidence.
+10. Refuse to answer when sufficient evidence is unavailable.
+
+The system must prioritize correctness and groundedness over producing an answer.
+
+If the system cannot establish an answer from the indexed 3GPP documentation, it should explicitly say that it cannot answer reliably.
+
+---
+
+# 3. Important Design Principle
+
+Do NOT attempt to solve hallucinations merely through prompting.
+
+Implement hallucination prevention at the system architecture level.
+
+Use multiple safeguards:
+
+* Metadata-aware retrieval
+* Hybrid retrieval
+* Reranking
+* Retrieval confidence thresholds
+* Evidence sufficiency checking
+* Grounded generation
+* Structured outputs
+* Citation enforcement
+* Claim-level verification
+* Explicit refusal behavior
+* Evaluation against unanswerable questions
+
+The system should be designed around:
+
+"Retrieve authoritative evidence first, then allow the LLM to synthesize only from that evidence."
+
+---
+
+# 4. Recommended Technology Stack
+
+Use Python as the primary language.
+
+Backend:
+
+* Python
+* FastAPI
+
+RAG:
+
+* LangChain where useful
+* Sentence Transformers or an appropriate embedding model
+* FAISS or Qdrant for vector retrieval
+* BM25 for lexical retrieval
+* A reranking model such as a suitable cross-encoder
+* LLM API through a configurable provider abstraction
+
+Frontend:
+
+* Streamlit
+
+PDF processing:
+
+* PyMuPDF / fitz or another reliable PDF extraction library
+
+Evaluation:
+
+* Python
+* Custom evaluation framework
+* Optional RAG evaluation framework if useful
+
+Deployment:
+
+* Docker
+* Make the application deployable to a simple cloud platform
+
+Use environment variables for API keys.
+
+Do NOT hard-code secrets.
+
+---
+
+# 5. Initial 3GPP Dataset
+
+Do not attempt to download and index every 3GPP document initially.
+
+Create a focused but representative dataset of important 5G specifications.
+
+Prioritize specifications such as:
+
+* TS 23.501 — System Architecture for the 5G System
+* TS 23.502 — Procedures for the 5G System
+* TS 24.501 — Non-Access-Stratum (NAS) protocol for 5G System (5GS)
+* TS 38.331 — NR; Radio Resource Control (RRC)
+* TS 29.500 — 5G System; Technical Realization of Service Based Architecture
+* TS 29.501 — 5G System; Principles and Guidelines for Services
+* TS 29.502 — 5G System; Session Management Services
+* TS 29.503 — 5G System; Unified Data Management Services
+
+Use official 3GPP sources wherever possible.
+
+Do not silently substitute unofficial documents as authoritative sources.
+
+The architecture should make it easy to add more specifications later.
+
+---
+
+# 6. Document Metadata
+
+Preserve detailed metadata throughout the entire pipeline.
+
+Every indexed chunk should contain metadata similar to:
+
+```python
+{
+    "spec_number": "23.501",
+    "title": "System Architecture for the 5G System",
+    "release": "Rel-18",
+    "version": "18.x.x",
+    "section": "5.3.2",
+    "section_title": "...",
+    "page": 42,
+    "source_url": "...",
+    "document_id": "...",
+    "chunk_id": "...",
+    "text": "..."
+}
+```
+
+Do not discard specification number, release, version, section or page information.
+
+These fields are critical for:
+
+* retrieval
+* filtering
+* citations
+* evaluation
+* debugging
+
+---
+
+# 7. Document Ingestion Pipeline
+
+Implement a reusable ingestion pipeline:
+
+```text
+3GPP source documents
+        ↓
+PDF download / local ingestion
+        ↓
+PDF parsing
+        ↓
+Structure detection
+        ↓
+Metadata extraction
+        ↓
+Structure-aware chunking
+        ↓
+Embedding generation
+        ↓
+Vector index
+        +
+BM25 index
+```
+
+The ingestion pipeline should be executable independently from the chatbot.
+
+For example:
+
+```bash
+python -m ingestion.run
+```
+
+or an equivalent command.
+
+Do not require the developer to manually edit Python files to ingest documents.
+
+---
+
+# 8. PDF Parsing
+
+3GPP documents are structured technical documents.
+
+Do NOT simply split extracted text into arbitrary fixed-size chunks.
+
+Preserve:
+
+* document title
+* specification number
+* release
+* version
+* chapter
+* section
+* subsection
+* paragraph
+* tables where reasonably possible
+* page number
+
+If the PDF parser can detect headings, use those headings to reconstruct document hierarchy.
+
+Example:
+
+```text
+TS 23.501
+  Chapter 5
+    5.3 Registration Management
+      5.3.1 ...
+      5.3.2 ...
+```
+
+The chunk metadata must retain this hierarchy.
+
+---
+
+# 9. Chunking Strategy
+
+Implement structure-aware chunking.
+
+Preferred hierarchy:
+
+```text
+Document
+  ↓
+Section
+  ↓
+Subsection
+  ↓
+Paragraph groups
+```
+
+A section should remain intact when reasonably small.
+
+If a section is too large, split it into smaller chunks based on paragraph boundaries rather than blindly cutting text in the middle of sentences.
+
+Use a configurable token/character limit.
+
+Each chunk should include enough surrounding context to remain meaningful.
+
+For example:
+
+```text
+Specification: TS 23.501
+Release: Rel-18
+Section: 5.15.6
+Section title: AMF Services
+
+[chunk text]
+```
+
+Consider adding the section heading and specification information into the indexed text as contextual prefixes.
+
+---
+
+# 10. Embeddings
+
+Create embeddings for every chunk.
+
+The embedding model must be configurable.
+
+Do not hard-code the embedding model throughout the application.
+
+For example:
+
+```env
+EMBEDDING_MODEL=...
+```
+
+Use a strong general-purpose embedding model suitable for technical text.
+
+The architecture should make changing the embedding model straightforward.
+
+---
+
+# 11. Vector Database
+
+Use FAISS or Qdrant.
+
+For a simple initial implementation, FAISS is acceptable.
+
+Store:
+
+* vector
+* chunk text
+* chunk ID
+* specification metadata
+* release
+* version
+* section
+* page
+* source URL
+
+The retrieval layer should return both the text and complete metadata.
+
+---
+
+# 12. BM25 Retrieval
+
+Implement lexical retrieval in addition to vector search.
+
+This is especially important because 3GPP contains highly specific identifiers such as:
+
+* AMF
+* SMF
+* UPF
+* UE
+* N1
+* N2
+* N3
+* T3510
+* PDU Session
+* Registration Request
+* NAS
+* RRC
+
+Exact keyword matching can outperform semantic retrieval for such identifiers.
+
+Implement:
+
+```text
+Query
+ ├── Vector retrieval
+ └── BM25 retrieval
+```
+
+Retrieve a configurable number of candidates from each.
+
+---
+
+# 13. Hybrid Retrieval
+
+Implement a hybrid retrieval strategy.
+
+Example:
+
+```text
+Vector Search → top 20
+BM25          → top 20
+                    ↓
+              merge / deduplicate
+                    ↓
+              candidate pool
+```
+
+Use a sensible score-combination strategy.
+
+Keep the implementation configurable.
+
+Do not simply concatenate the two result sets without considering their ranking.
+
+---
+
+# 14. Metadata-Aware Retrieval
+
+If the user specifies a specification, use it.
+
+Example:
+
+User:
+
+"According to TS 24.501, what is T3510?"
+
+The system should identify:
+
+```text
+spec_number = 24.501
+```
+
+and restrict retrieval to that specification when possible.
+
+Similarly, if a release is explicitly specified:
+
+"According to Rel-18..."
+
+filter to the requested release.
+
+Implement automatic extraction of specification identifiers using deterministic parsing/regex where appropriate.
+
+For example, recognize:
+
+* TS 23.501
+* TS23.501
+* 23.501
+
+Do not rely entirely on an LLM for this.
+
+---
+
+# 15. Query Understanding
+
+Create a lightweight query-analysis stage.
+
+Extract information such as:
+
+```json
+{
+    "specification": "23.501",
+    "release": "Rel-18",
+    "keywords": [
+        "AMF",
+        "registration"
+    ],
+    "query": "What is the role of the AMF during registration?"
+}
+```
+
+The specification and release fields may be null if not present.
+
+Do not over-engineer this stage.
+
+Use deterministic extraction for obvious entities and optionally an LLM for more complex query interpretation.
+
+---
+
+# 16. Reranking
+
+After hybrid retrieval, rerank the candidate chunks.
+
+Example:
+
+```text
+Hybrid retrieval
+       ↓
+40 candidates
+       ↓
+Reranker
+       ↓
+Top 5–10 evidence chunks
+```
+
+Use a cross-encoder or another appropriate reranking model.
+
+Make the number of retrieved and final chunks configurable.
+
+---
+
+# 17. Evidence Sufficiency Check
+
+This is a critical component.
+
+Before generating the final answer, determine whether the retrieved evidence is sufficient to answer the question.
+
+Create an evidence evaluation step.
+
+Input:
+
+```text
+Question:
+...
+
+Retrieved evidence:
+...
+```
+
+Output:
+
+```json
+{
+    "sufficient": true,
+    "confidence": 0.94,
+    "reason": "The retrieved sections explicitly describe the requested procedure."
+}
+```
+
+If evidence is insufficient:
+
+```json
+{
+    "sufficient": false,
+    "confidence": 0.31
+}
+```
+
+Do NOT generate a speculative answer.
+
+Instead return a clear refusal such as:
+
+"I could not find sufficient evidence in the indexed 3GPP specifications to answer this reliably."
+
+Do not invent information.
+
+---
+
+# 18. Grounded Generation
+
+The generation model must receive:
+
+1. User question
+2. Retrieved evidence
+3. Metadata
+4. Strict grounding instructions
+
+Use a prompt similar in principle to:
+
+```text
+You are a 3GPP standards question-answering assistant.
+
+Answer ONLY using the supplied evidence.
+
+Rules:
+
+1. Do not use outside knowledge.
+2. Do not invent facts.
+3. Do not infer unsupported technical behavior.
+4. Every factual claim must be supported by supplied evidence.
+5. Cite the relevant specification and section.
+6. Never fabricate page numbers or specification numbers.
+7. If the evidence is insufficient, explicitly say so.
+8. If sources conflict, explain the conflict.
+9. Prefer the user-requested release when specified.
+10. Do not claim certainty when the evidence does not support certainty.
+```
+
+The exact wording can be improved during implementation.
+
+---
+
+# 19. Structured Answer Output
+
+Do not allow the LLM to return arbitrary text internally.
+
+Use structured output such as:
+
+```json
+{
+    "answer": "...",
+    "grounded": true,
+    "confidence": 0.94,
+    "claims": [
+        {
+            "text": "...",
+            "source_chunk_ids": [
+                "..."
+            ]
+        }
+    ],
+    "sources": [
+        {
+            "spec_number": "23.501",
+            "release": "Rel-18",
+            "version": "...",
+            "section": "5.3.2",
+            "page": 42,
+            "source_url": "..."
+        }
+    ]
+}
+```
+
+The frontend can then render this cleanly.
+
+---
+
+# 20. Citation Enforcement
+
+Every substantive answer must contain citations.
+
+Citations should include as much of the following as the source metadata supports:
+
+* Specification number
+* Release
+* Version
+* Section
+* Section title
+* Page
+* Source URL
+
+Example:
+
+```text
+TS 23.501
+Rel-18
+Section 5.3.2
+Page 42
+```
+
+Do not fabricate citation metadata.
+
+If a page number cannot reliably be determined, omit it rather than inventing one.
+
+---
+
+# 21. Claim-Level Verification
+
+Implement a post-generation verification stage.
+
+Pipeline:
+
+```text
+Retrieved Evidence
+       +
+Generated Answer
+       ↓
+Claim Extraction
+       ↓
+Claim Verification
+       ↓
+Supported / Unsupported
+```
+
+For each factual claim, determine whether it is supported by the retrieved evidence.
+
+Example:
+
+```json
+{
+    "claim": "The AMF performs registration management.",
+    "supported": true,
+    "evidence_chunk": "chunk_123"
+}
+```
+
+If an important claim is unsupported:
+
+* either regenerate using stricter constraints
+* or reject the answer and return an uncertainty/refusal response
+
+Never silently present unsupported claims as facts.
+
+---
+
+# 22. Answer Regeneration
+
+If claim verification fails, allow one controlled retry.
+
+Example:
+
+```text
+Generate
+   ↓
+Verify
+   ↓
+Unsupported claim?
+   ↓
+Retry with stricter grounding
+   ↓
+Verify again
+   ↓
+Still unsupported?
+   ↓
+Refuse
+```
+
+Do not create infinite retry loops.
+
+Maximum retry count should be configurable and default to 1.
+
+---
+
+# 23. Handling Unanswerable Questions
+
+This is mandatory.
+
+Create questions where the answer is NOT available in the indexed documents.
+
+Examples:
+
+* Questions unrelated to telecom
+* Questions about unsupported specifications
+* Questions asking for facts absent from the documents
+* Questions containing fabricated standards
+* Questions requiring information from a release that isn't indexed
+
+The correct behavior is:
+
+```text
+I could not find sufficient evidence in the indexed 3GPP
+specifications to answer this reliably.
+```
+
+This is preferable to hallucinating.
+
+---
+
+# 24. Handling Conflicting Releases
+
+The system must not mix information from different releases without making that clear.
+
+If Rel-17 and Rel-18 contain different information:
+
+```text
+Rel-17:
+...
+
+Rel-18:
+...
+```
+
+The answer should explicitly identify the difference.
+
+If the user specifies a release, prioritize that release.
+
+---
+
+# 25. Chatbot UI
+
+Build a clean Streamlit interface.
+
+The interface should contain:
+
+## Header
+
+"3GPP Standards AI Assistant"
+
+## Chat interface
+
+Allow the user to enter natural-language questions.
+
+## Answer
+
+Display the grounded response.
+
+## Grounding status
+
+Display something like:
+
+```text
+Grounded: Yes
+Evidence confidence: 94%
+```
+
+Do not overemphasize the numerical confidence if it is not statistically calibrated.
+
+## Sources
+
+Display clickable/source metadata:
+
+```text
+TS 23.501
+Rel-18
+Section 5.3.2
+Page 42
+```
+
+## Retrieved evidence
+
+Add an expandable section:
+
+"View retrieved evidence"
+
+Show the actual source passages used to generate the answer.
+
+This is extremely important for demonstrating transparency.
+
+---
+
+# 26. Example UI
+
+Aim for something like:
+
+```text
+=====================================================
+              3GPP Standards AI Assistant
+=====================================================
+
+Ask a question about the indexed 3GPP specifications.
+
+[ What is the role of the AMF during registration? ]
+
+                       [ Ask ]
+
+-----------------------------------------------------
+
+ANSWER
+
+The AMF is responsible for ...
+
+Grounded: ✓
+
+-----------------------------------------------------
+
+SOURCES
+
+TS 23.501
+Rel-18
+Section 5.3.2
+Page 42
+
+TS 23.502
+Rel-18
+Section 4.2.2
+Page 31
+
+-----------------------------------------------------
+
+RETRIEVED EVIDENCE
+
+> The AMF performs ...
+
+> The registration procedure ...
+
+[View full evidence]
+```
+
+For an unsupported question:
+
+```text
+-----------------------------------------------------
+
+I could not find sufficient evidence in the indexed
+3GPP specifications to answer this reliably.
+
+No grounded answer was generated.
+
+-----------------------------------------------------
+```
+
+---
+
+# 27. Backend API
+
+Implement a FastAPI backend.
+
+At minimum:
+
+```text
+POST /chat
+GET  /health
+GET  /documents
+POST /search
+```
+
+Example:
+
+```json
+POST /chat
+
+{
+    "question": "What is the role of the AMF?"
+}
+```
+
+Response:
+
+```json
+{
+    "answer": "...",
+    "grounded": true,
+    "confidence": 0.94,
+    "sources": [...],
+    "evidence": [...]
+}
+```
+
+Keep the API independent from the Streamlit frontend.
+
+---
+
+# 28. Evaluation Framework
+
+This is one of the most important parts of the project.
+
+Do not merely demonstrate that the chatbot works.
+
+Build a repeatable evaluation framework.
+
+Create a dataset of approximately 50–100 questions initially.
+
+Include:
+
+### A. Direct factual questions
+
+Example:
+
+"What is the role of the AMF?"
+
+### B. Specification-specific questions
+
+"According to TS 23.501, what is X?"
+
+### C. Procedure questions
+
+"What happens during the 5G registration procedure?"
+
+### D. Entity-specific questions
+
+"What is N2?"
+
+### E. Cross-section questions
+
+Questions requiring evidence from multiple relevant sections.
+
+### F. Cross-document questions
+
+Questions requiring information from multiple specifications.
+
+### G. Release-specific questions
+
+Questions explicitly targeting a release.
+
+### H. Unanswerable questions
+
+Questions whose answers are absent from the indexed corpus.
+
+These are extremely important for measuring hallucination resistance.
+
+---
+
+# 29. Evaluation Metrics
+
+Implement measurements for at least:
+
+## Retrieval Recall@K
+
+Was the relevant source chunk retrieved?
+
+Measure:
+
+* Recall@5
+* Recall@10
+
+## Retrieval Precision
+
+How many retrieved chunks were relevant?
+
+## Citation Accuracy
+
+Does each citation actually correspond to the evidence?
+
+## Faithfulness / Groundedness
+
+Are generated claims supported by retrieved evidence?
+
+## Answer Correctness
+
+Does the generated answer match the expected answer?
+
+## Refusal Accuracy
+
+For unanswerable questions:
+
+* Did the system correctly refuse?
+
+## Hallucination Rate
+
+Define a clear metric.
+
+For example:
+
+```text
+Hallucination Rate =
+unsupported answers / total evaluated questions
+```
+
+Document the exact definition used.
+
+---
+
+# 30. Baseline Comparison
+
+Implement a simple baseline RAG system.
+
+Baseline:
+
+```text
+PDF
+ ↓
+fixed chunking
+ ↓
+embeddings
+ ↓
+vector search
+ ↓
+LLM
+```
+
+Compare it with the improved architecture:
+
+```text
+Structure-aware chunking
+        ↓
+Metadata filtering
+        ↓
+Vector + BM25
+        ↓
+Reranking
+        ↓
+Evidence sufficiency
+        ↓
+Grounded generation
+        ↓
+Claim verification
+        ↓
+Refusal
+```
+
+Report the actual measured differences.
+
+DO NOT fabricate evaluation numbers.
+
+If the improved system performs worse on a metric, report it honestly and explain why.
+
+---
+
+# 31. Evaluation Report
+
+Generate a machine-readable evaluation result.
+
+For example:
+
+```text
+evaluation/results/
+    baseline_results.json
+    proposed_results.json
+    summary.json
+```
+
+Also generate a human-readable report containing:
+
+* dataset size
+* question categories
+* retrieval metrics
+* answer metrics
+* hallucination rate
+* refusal accuracy
+* citation accuracy
+* baseline vs proposed architecture
+
+---
+
+# 32. Test Cases
+
+Write automated tests for:
+
+### Ingestion
+
+* PDF extraction
+* metadata extraction
+* chunk creation
+
+### Retrieval
+
+* vector retrieval
+* BM25 retrieval
+* hybrid retrieval
+* metadata filtering
+
+### Generation
+
+* structured output
+* citation generation
+
+### Hallucination prevention
+
+* insufficient evidence
+* unsupported claims
+* fabricated specification
+* unrelated question
+
+### API
+
+* `/health`
+* `/chat`
+* invalid requests
+
+---
+
+# 33. Project Structure
+
+Use a clean modular architecture similar to:
+
+```text
+3gpp-rag/
+│
+├── app/
+│   ├── api/
+│   │   ├── routes.py
+│   │   └── schemas.py
+│   │
+│   ├── config/
+│   │   └── settings.py
+│   │
+│   ├── ingestion/
+│   │   ├── downloader.py
+│   │   ├── parser.py
+│   │   ├── metadata.py
+│   │   ├── chunker.py
+│   │   └── pipeline.py
+│   │
+│   ├── retrieval/
+│   │   ├── vector_store.py
+│   │   ├── bm25.py
+│   │   ├── hybrid.py
+│   │   └── reranker.py
+│   │
+│   ├── generation/
+│   │   ├── prompts.py
+│   │   ├── generator.py
+│   │   └── schemas.py
+│   │
+│   ├── verification/
+│   │   ├── evidence.py
+│   │   ├── claims.py
+│   │   └── grounding.py
+│   │
+│   └── main.py
+│
+├── evaluation/
+│   ├── dataset.json
+│   ├── evaluate.py
+│   ├── metrics.py
+│   └── results/
+│
+├── frontend/
+│   └── streamlit_app.py
+│
+├── tests/
+│
+├── data/
+│   ├── raw/
+│   └── processed/
+│
+├── scripts/
+│
+├── .env.example
+├── .gitignore
+├── requirements.txt
+├── Dockerfile
+├── docker-compose.yml
+└── README.md
+```
+
+You may modify this structure if there is a strong engineering reason.
+
+---
+
+# 34. Configuration
+
+Use `.env`.
+
+Create:
+
+```text
+.env.example
+```
+
+with placeholders such as:
+
+```text
+LLM_PROVIDER=
+LLM_MODEL=
+OPENAI_API_KEY=
+EMBEDDING_MODEL=
+VECTOR_DB=
+RERANKER_MODEL=
+TOP_K=
+RERANK_TOP_K=
+GROUNDING_THRESHOLD=
+```
+
+Never commit real API keys.
+
+---
+
+# 35. Error Handling
+
+The system should gracefully handle:
+
+* LLM API failures
+* embedding failures
+* malformed PDFs
+* missing documents
+* empty retrieval
+* low retrieval confidence
+* invalid questions
+* malformed LLM responses
+* unavailable vector index
+
+Do not allow errors to result in fabricated answers.
+
+If retrieval fails, say retrieval failed.
+
+If evidence is unavailable, refuse.
+
+---
+
+# 36. Logging
+
+Implement useful structured logging.
+
+Log things such as:
+
+```text
+query
+retrieved chunk IDs
+retrieval scores
+reranking scores
+evidence sufficiency
+generation status
+verification status
+latency
+```
+
+Do not log API secrets.
+
+This will make debugging and evaluation easier.
+
+---
+
+# 37. Performance
+
+Keep the system reasonably efficient.
+
+Do not recompute embeddings for every query.
+
+Precompute document embeddings during ingestion.
+
+Use persistent indexes.
+
+Cache where appropriate.
+
+The application should not rebuild the entire vector database every time it starts.
+
+---
+
+# 38. Docker
+
+Provide a Dockerfile.
+
+The application should be runnable with a straightforward command.
+
+For example:
+
+```bash
+docker build -t 3gpp-rag .
+docker run --env-file .env -p 8000:8000 3gpp-rag
+```
+
+If a separate frontend container is appropriate, provide docker-compose.
+
+Do not make Docker unnecessarily complicated.
+
+---
+
+# 39. README
+
+Create an excellent README.
+
+It must contain:
+
+## Project title
+
+"3GPP Standards AI Assistant — Grounded RAG"
+
+## Problem statement
+
+Explain why generic LLMs are unreliable for technical standards.
+
+## Solution
+
+Explain the RAG architecture.
+
+## Architecture diagram
+
+Include a Mermaid diagram.
+
+Example:
+
+```mermaid
+flowchart TD
+    A[3GPP PDFs] --> B[PDF Parser]
+    B --> C[Structure-Aware Chunking]
+    C --> D[Metadata]
+    C --> E[Embeddings]
+    E --> F[Vector Index]
+    C --> G[BM25 Index]
+
+    H[User Query] --> I[Query Analysis]
+    I --> J[Hybrid Retrieval]
+    F --> J
+    G --> J
+
+    J --> K[Reranker]
+    K --> L[Evidence Sufficiency]
+
+    L -->|Insufficient| M[Refusal]
+    L -->|Sufficient| N[Grounded LLM]
+    N --> O[Claim Verification]
+
+    O -->|Pass| P[Answer + Citations]
+    O -->|Fail| Q[Regenerate / Refuse]
+```
+
+## Features
+
+Explain all major features.
+
+## Hallucination prevention
+
+This section should be detailed.
+
+## Evaluation
+
+Show actual results.
+
+## Installation
+
+Provide exact commands.
+
+## Configuration
+
+Explain environment variables.
+
+## Running
+
+Provide exact commands.
+
+## API
+
+Document endpoints.
+
+## Limitations
+
+Be honest about current limitations.
+
+## Future improvements
+
+Examples:
+
+* broader 3GPP corpus
+* diagram understanding
+* table-specialized retrieval
+* improved release management
+* query decomposition
+* better calibrated confidence
+* multilingual support
+
+---
+
+# 40. Demo Requirements
+
+Create several demo questions.
+
+Include:
+
+### Normal question
+
+"What is the role of the AMF?"
+
+### Specification-specific question
+
+"According to TS 23.501, what is the role of the AMF?"
+
+### Procedure question
+
+"Describe the 5G registration procedure."
+
+### Identifier question
+
+"What is T3510?"
+
+### Unanswerable question
+
+Ask something clearly outside the indexed evidence.
+
+Demonstrate that the system refuses rather than hallucinating.
+
+---
+
+# 41. Security
+
+Do not expose:
+
+* API keys
+* environment variables
+* internal stack traces
+* filesystem paths unnecessarily
+
+Validate API input.
+
+Do not allow user input to directly execute shell commands.
+
+---
+
+# 42. Important Constraint
+
+Do NOT claim "zero hallucinations."
+
+No realistic LLM system can guarantee mathematical zero hallucinations.
+
+Instead position the system as:
+
+"Designed to minimize unsupported generation through evidence-constrained retrieval, verification, and refusal."
+
+The evaluation should demonstrate the measured hallucination/unsupported-answer rate.
+
+---
+
+# 43. Quality Bar
+
+Before considering the project complete, verify:
+
+* The application actually runs.
+* Documents can be ingested.
+* Retrieval works.
+* Hybrid retrieval works.
+* Metadata filtering works.
+* Reranking works.
+* Answers contain citations.
+* Retrieved evidence is visible.
+* Unsupported questions trigger refusal.
+* Claim verification works.
+* Evaluation can be executed.
+* Tests pass.
+* No API secrets are committed.
+* README contains complete setup instructions.
+* Docker configuration works.
+* The UI is clean and usable.
+
+Do not stop after creating placeholder files.
+
+All major components must have real implementations.
+
+---
+
+# 44. Development Process
+
+Build incrementally.
+
+First implement:
+
+```text
+PDF → extraction → chunks → vector search → answer
+```
+
+Then add:
+
+```text
+BM25
+→ hybrid retrieval
+→ metadata filtering
+→ reranking
+→ evidence sufficiency
+→ structured generation
+→ claim verification
+→ evaluation
+```
+
+After every major stage, test the system.
+
+Do not build the entire architecture and only then discover that basic retrieval doesn't work.
+
+---
+
+# 45. Final Deliverables
+
+At the end, provide:
+
+1. Complete source code
+2. Working local application
+3. Streamlit frontend
+4. FastAPI backend
+5. 3GPP ingestion pipeline
+6. Vector/BM25 indexes or reproducible index-generation process
+7. Evaluation dataset
+8. Evaluation scripts
+9. Evaluation results
+10. Automated tests
+11. Dockerfile
+12. `.env.example`
+13. Comprehensive README
+14. Example questions and answers
+15. Clear documentation of hallucination-prevention mechanisms
+
+If deployment credentials/environment are available, also prepare the project for deployment.
+
+---
+
+# 46. Final Acceptance Criteria
+
+The project is complete only if all of the following are true:
+
+### Functional
+
+A user can ask a 3GPP question and receive a grounded answer.
+
+### Retrieval
+
+The system retrieves relevant 3GPP evidence using hybrid retrieval.
+
+### Citations
+
+The answer identifies the source specification and section.
+
+### Grounding
+
+Generated claims are checked against retrieved evidence.
+
+### Refusal
+
+The system refuses when evidence is insufficient.
+
+### Release awareness
+
+The system preserves and uses specification/release/version metadata.
+
+### Evaluation
+
+The project provides measurable retrieval, grounding, citation and hallucination metrics.
+
+### Reproducibility
+
+Another developer can clone the repository, configure environment variables, ingest the documents and run the application.
+
+### Presentation
+
+The application looks like a serious technical product rather than a toy chatbot.
+
+---
+
+# 47. Most Important Instruction
+
+Do not optimize for "the LLM gives an answer."
+
+Optimize for:
+
+```text
+Can the system prove that its answer came from
+the correct 3GPP evidence?
+```
+
+When evidence is available:
+
+```text
+Retrieve → Verify → Answer → Cite
+```
+
+When evidence is unavailable:
+
+```text
+Retrieve → Fail Evidence Check → Refuse
+```
+
+The second behavior is just as important as the first.
+
+Build the project accordingly.

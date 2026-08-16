@@ -1,0 +1,285 @@
+{
+  "metrics": {
+    "total_questions": 10,
+    "answerable_questions": 8,
+    "unanswerable_questions": 2,
+    "recall_at_5": 100.0,
+    "recall_at_10": 100.0,
+    "citation_accuracy": 87.5,
+    "refusal_accuracy": 0.0,
+    "groundedness_rate": 100.0,
+    "hallucination_rate": 20.0
+  },
+  "details": [
+    {
+      "id": "q1",
+      "question": "What is the role of the AMF during UE registration?",
+      "category": "Direct factual questions",
+      "is_answerable": true,
+      "expected_spec": "23.501",
+      "expected_section": "5.3.2",
+      "answer": "Based on document TS 23.501: Specification: TS 23.501 | Release: Rel-18 | Section: 5.3.2 (Registration Management and Role of AMF) | Page: 42\nThe Access and Mobility Management Function (AMF) includes the following key functional...",
+      "grounded": true,
+      "retrieved_specs": [
+        "23.501",
+        "23.502",
+        "23.502",
+        "29.502",
+        "24.501"
+      ],
+      "retrieved_sections": [
+        "5.3.2",
+        "4.2.2",
+        "4.3.2",
+        "5.2.2.2",
+        "10.2.4"
+      ],
+      "cited_specs": [
+        "23.501"
+      ]
+    },
+    {
+      "id": "q2",
+      "question": "According to TS 24.501, what is T3510?",
+      "category": "Specification-specific questions",
+      "is_answerable": true,
+      "expected_spec": "24.501",
+      "expected_section": "10.2.1",
+      "answer": "Based on document TS 24.501: Specification: TS 24.501 | Release: Rel-18 | Section: 10.2.1 (5GS NAS Timers - T3510 Timer) | Page: 110\nTimer T3510 is a 5GS NAS timer maintained at the UE side during the Registration procedure.\n- St...",
+      "grounded": true,
+      "retrieved_specs": [
+        "24.501",
+        "24.501",
+        "23.501",
+        "23.502",
+        "23.501"
+      ],
+      "retrieved_sections": [
+        "10.2.1",
+        "10.2.4",
+        "5.8.2",
+        "4.2.2",
+        "5.6.1"
+      ],
+      "cited_specs": [
+        "24.501"
+      ]
+    },
+    {
+      "id": "q3",
+      "question": "What happens during the 5G registration procedure?",
+      "category": "Procedure questions",
+      "is_answerable": true,
+      "expected_spec": "23.502",
+      "expected_section": "4.2.2",
+      "answer": "Based on document TS 24.501: Specification: TS 24.501 | Release: Rel-18 | Section: 10.2.4 (5GS NAS Timers - T3512 Timer) | Page: 114\nTimer T3512 is the Periodic Registration Update timer maintained at the UE.\n- Start: Started whe...",
+      "grounded": true,
+      "retrieved_specs": [
+        "24.501",
+        "23.502",
+        "23.501",
+        "23.501",
+        "24.501"
+      ],
+      "retrieved_sections": [
+        "10.2.4",
+        "4.2.2",
+        "5.3.2",
+        "5.1",
+        "10.2.1"
+      ],
+      "cited_specs": [
+        "24.501"
+      ]
+    },
+    {
+      "id": "q4",
+      "question": "What are the key functions of the UPF?",
+      "category": "Entity-specific questions",
+      "is_answerable": true,
+      "expected_spec": "23.501",
+      "expected_section": "5.6.1",
+      "answer": "Based on document TS 23.501: Specification: TS 23.501 | Release: Rel-18 | Section: 5.6.1 (Session Management and UPF Functions) | Page: 68\nThe User Plane Function (UPF) handles user plane processing. UPF functionality includes:\n-...",
+      "grounded": true,
+      "retrieved_specs": [
+        "23.501",
+        "23.501",
+        "23.501",
+        "23.502",
+        "23.501"
+      ],
+      "retrieved_sections": [
+        "5.6.1",
+        "5.3.2",
+        "5.8.2",
+        "4.3.2",
+        "5.1"
+      ],
+      "cited_specs": [
+        "23.501"
+      ]
+    },
+    {
+      "id": "q5",
+      "question": "How do AMF and SMF interact during PDU Session Establishment?",
+      "category": "Cross-section questions",
+      "is_answerable": true,
+      "expected_spec": "23.502",
+      "expected_section": "4.3.2",
+      "answer": "Based on document TS 23.502: Specification: TS 23.502 | Release: Rel-18 | Section: 4.3.2 (UE Requested PDU Session Establishment) | Page: 75\nPDU Session Establishment allows the UE to establish a data path to a Data Network (DN)....",
+      "grounded": true,
+      "retrieved_specs": [
+        "23.502",
+        "29.502",
+        "23.501",
+        "23.501",
+        "23.502"
+      ],
+      "retrieved_sections": [
+        "4.3.2",
+        "5.2.2.2",
+        "5.3.2",
+        "5.6.1",
+        "4.2.2"
+      ],
+      "cited_specs": [
+        "23.502"
+      ]
+    },
+    {
+      "id": "q6",
+      "question": "In Rel-18 TS 24.501, what is the default value of timer T3512?",
+      "category": "Release-specific questions",
+      "is_answerable": true,
+      "expected_spec": "24.501",
+      "expected_section": "10.2.4",
+      "answer": "Based on document TS 24.501: Specification: TS 24.501 | Release: Rel-18 | Section: 10.2.1 (5GS NAS Timers - T3510 Timer) | Page: 110\nTimer T3510 is a 5GS NAS timer maintained at the UE side during the Registration procedure.\n- St...",
+      "grounded": true,
+      "retrieved_specs": [
+        "24.501",
+        "24.501",
+        "23.502",
+        "23.501",
+        "38.331"
+      ],
+      "retrieved_sections": [
+        "10.2.1",
+        "10.2.4",
+        "4.2.2",
+        "5.8.2",
+        "5.3.3"
+      ],
+      "cited_specs": [
+        "24.501"
+      ]
+    },
+    {
+      "id": "q7",
+      "question": "What is the quantum encryption key distribution algorithm in 6G Rel-21?",
+      "category": "Unanswerable questions",
+      "is_answerable": false,
+      "expected_spec": null,
+      "expected_section": null,
+      "answer": "Based on document TS 23.502: Specification: TS 23.502 | Release: Rel-18 | Section: 4.2.2 (Registration Procedures) | Page: 31\nA UE registers with the 5G System to receive services, perform mobility updates, or re-establish sessio...",
+      "grounded": true,
+      "retrieved_specs": [
+        "23.502",
+        "23.501",
+        "23.501",
+        "24.501",
+        "38.331"
+      ],
+      "retrieved_sections": [
+        "4.2.2",
+        "5.1",
+        "5.3.2",
+        "10.2.4",
+        "5.3.3"
+      ],
+      "cited_specs": [
+        "23.502"
+      ]
+    },
+    {
+      "id": "q8",
+      "question": "How many coffee cups are consumed by 3GPP delegates per session?",
+      "category": "Unanswerable questions",
+      "is_answerable": false,
+      "expected_spec": null,
+      "expected_section": null,
+      "answer": "Based on document TS 29.502: Specification: TS 29.502 | Release: Rel-18 | Section: 5.2.2.2 (Nsmf_PDUSession CreateSMContext Service Operation) | Page: 35\nThe Nsmf_PDUSession_CreateSMContext service operation allows the AMF to req...",
+      "grounded": true,
+      "retrieved_specs": [
+        "29.502",
+        "24.501",
+        "38.331",
+        "23.501",
+        "24.501"
+      ],
+      "retrieved_sections": [
+        "5.2.2.2",
+        "10.2.4",
+        "5.3.3",
+        "5.6.1",
+        "10.2.1"
+      ],
+      "cited_specs": [
+        "29.502"
+      ]
+    },
+    {
+      "id": "q9",
+      "question": "What is the Service Based Interface for UDM?",
+      "category": "Direct factual questions",
+      "is_answerable": true,
+      "expected_spec": "23.501",
+      "expected_section": "5.8.2",
+      "answer": "Based on document TS 23.501: Specification: TS 23.501 | Release: Rel-18 | Section: 5.8.2 (Service Based Interfaces and Network Functions) | Page: 95\nThe 5G System relies on Service Based Interfaces (SBI) in the Control Plane. Net...",
+      "grounded": true,
+      "retrieved_specs": [
+        "23.501",
+        "23.501",
+        "23.501",
+        "23.501",
+        "29.502"
+      ],
+      "retrieved_sections": [
+        "5.8.2",
+        "5.1",
+        "5.3.2",
+        "5.6.1",
+        "5.2.2.2"
+      ],
+      "cited_specs": [
+        "23.501"
+      ]
+    },
+    {
+      "id": "q10",
+      "question": "Describe the RRC Connection Establishment procedure.",
+      "category": "Procedure questions",
+      "is_answerable": true,
+      "expected_spec": "38.331",
+      "expected_section": "5.3.3",
+      "answer": "Based on document TS 38.331: Specification: TS 38.331 | Release: Rel-18 | Section: 5.3.3 (RRC Connection Establishment) | Page: 55\nThe RRC Connection Establishment procedure is used to establish an RRC connection between UE and g...",
+      "grounded": true,
+      "retrieved_specs": [
+        "38.331",
+        "23.501",
+        "23.502",
+        "23.502",
+        "23.501"
+      ],
+      "retrieved_sections": [
+        "5.3.3",
+        "5.3.2",
+        "4.3.2",
+        "4.2.2",
+        "5.6.1"
+      ],
+      "cited_specs": [
+        "38.331"
+      ]
+    }
+  ]
+}

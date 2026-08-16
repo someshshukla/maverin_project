@@ -1,0 +1,29 @@
+Specification: TS 23.502
+Title: Procedures for the 5G System (5GS)
+Release: Rel-18
+Version: 18.3.0
+Source URL: https://www.3gpp.org/ftp/Specs/archive/23_series/23.502/
+============================================================
+
+Chapter/Section: 4.2.2
+Section Title: Registration Procedures
+Page: 31
+----------------------------------------
+A UE registers with the 5G System to receive services, perform mobility updates, or re-establish session management.
+Step 1: UE sends an AN message containing NAS Registration Request to gNB over the N1/Radio interface.
+Step 2: gNB selects an AMF and forwards the NAS Registration Request over the N2 interface via N2 Initial UE Message.
+Step 3: If the selected AMF has changed, the new AMF sends Namf_Communication_UEContextTransfer to the old AMF to retrieve the UE context.
+Step 4: Authentication and Security checks are executed with AUSF and UDM.
+Step 5: AMF sends Registration Accept message containing 5G-GUTI, Allowed NSSAI, and T3512 timer values to the UE.
+
+
+Chapter/Section: 4.3.2
+Section Title: UE Requested PDU Session Establishment
+Page: 75
+----------------------------------------
+PDU Session Establishment allows the UE to establish a data path to a Data Network (DN).
+Step 1: UE sends a NAS message containing PDU Session Establishment Request to the AMF over N1.
+Step 2: AMF selects an SMF based on DNN and S-NSSAI, and invokes Nsmf_PDUSession_CreateSMContext.
+Step 3: SMF authenticates session parameters, selects a UPF, establishes N4 session with UPF, and assigns an IP address to the UE.
+Step 4: SMF responds to AMF, which sends N2 PDU Session Request containing N3 tunnel info to gNB.
+

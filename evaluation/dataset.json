@@ -1,0 +1,92 @@
+[
+  {
+    "id": "q1",
+    "category": "Direct factual questions",
+    "question": "What is the role of the AMF during UE registration?",
+    "expected_spec": "23.501",
+    "expected_section": "5.3.2",
+    "is_answerable": true,
+    "expected_keywords": ["registration", "N1", "N2", "GUTI", "AUSF", "UDM"]
+  },
+  {
+    "id": "q2",
+    "category": "Specification-specific questions",
+    "question": "According to TS 24.501, what is T3510?",
+    "expected_spec": "24.501",
+    "expected_section": "10.2.1",
+    "is_answerable": true,
+    "expected_keywords": ["timer", "15 seconds", "REGISTRATION REQUEST", "UE"]
+  },
+  {
+    "id": "q3",
+    "category": "Procedure questions",
+    "question": "What happens during the 5G registration procedure?",
+    "expected_spec": "23.502",
+    "expected_section": "4.2.2",
+    "is_answerable": true,
+    "expected_keywords": ["gNB", "AMF", "Namf_Communication_UEContextTransfer", "Registration Accept"]
+  },
+  {
+    "id": "q4",
+    "category": "Entity-specific questions",
+    "question": "What are the key functions of the UPF?",
+    "expected_spec": "23.501",
+    "expected_section": "5.6.1",
+    "is_answerable": true,
+    "expected_keywords": ["User Plane", "DN", "Packet routing", "QoS"]
+  },
+  {
+    "id": "q5",
+    "category": "Cross-section questions",
+    "question": "How do AMF and SMF interact during PDU Session Establishment?",
+    "expected_spec": "23.502",
+    "expected_section": "4.3.2",
+    "is_answerable": true,
+    "expected_keywords": ["Nsmf_PDUSession_CreateSMContext", "DNN", "S-NSSAI"]
+  },
+  {
+    "id": "q6",
+    "category": "Release-specific questions",
+    "question": "In Rel-18 TS 24.501, what is the default value of timer T3512?",
+    "expected_spec": "24.501",
+    "expected_section": "10.2.4",
+    "is_answerable": true,
+    "expected_keywords": ["54 minutes", "Periodic Registration Update", "ACCEPT"]
+  },
+  {
+    "id": "q7",
+    "category": "Unanswerable questions",
+    "question": "What is the quantum encryption key distribution algorithm in 6G Rel-21?",
+    "expected_spec": null,
+    "expected_section": null,
+    "is_answerable": false,
+    "expected_keywords": []
+  },
+  {
+    "id": "q8",
+    "category": "Unanswerable questions",
+    "question": "How many coffee cups are consumed by 3GPP delegates per session?",
+    "expected_spec": null,
+    "expected_section": null,
+    "is_answerable": false,
+    "expected_keywords": []
+  },
+  {
+    "id": "q9",
+    "category": "Direct factual questions",
+    "question": "What is the Service Based Interface for UDM?",
+    "expected_spec": "23.501",
+    "expected_section": "5.8.2",
+    "is_answerable": true,
+    "expected_keywords": ["Nudm", "HTTP/2", "JSON"]
+  },
+  {
+    "id": "q10",
+    "category": "Procedure questions",
+    "question": "Describe the RRC Connection Establishment procedure.",
+    "expected_spec": "38.331",
+    "expected_section": "5.3.3",
+    "is_answerable": true,
+    "expected_keywords": ["RRCSetupRequest", "RRCSetup", "RRCSetupComplete", "CCCH"]
+  }
+]

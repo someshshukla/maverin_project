@@ -1,0 +1,24 @@
+{
+  "baseline_architecture": {
+    "total_questions": 10,
+    "answerable_questions": 8,
+    "unanswerable_questions": 2,
+    "recall_at_5": 100.0,
+    "recall_at_10": 100.0,
+    "citation_accuracy": 87.5,
+    "refusal_accuracy": 0.0,
+    "groundedness_rate": 100.0,
+    "hallucination_rate": 20.0
+  },
+  "proposed_architecture": {
+    "total_questions": 10,
+    "answerable_questions": 8,
+    "unanswerable_questions": 2,
+    "recall_at_5": 100.0,
+    "recall_at_10": 100.0,
+    "citation_accuracy": 100.0,
+    "refusal_accuracy": 100.0,
+    "groundedness_rate": 100.0,
+    "hallucination_rate": 0.0
+  }
+}

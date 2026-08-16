@@ -1,0 +1,29 @@
+Specification: TS 24.501
+Title: Non-Access-Stratum (NAS) protocol for 5G System (5GS)
+Release: Rel-18
+Version: 18.2.0
+Source URL: https://www.3gpp.org/ftp/Specs/archive/24_series/24.501/
+============================================================
+
+Chapter/Section: 10.2.1
+Section Title: 5GS NAS Timers - T3510 Timer
+Page: 110
+----------------------------------------
+Timer T3510 is a 5GS NAS timer maintained at the UE side during the Registration procedure.
+- Start: Started when the UE transmits a REGISTRATION REQUEST message to the network over NAS.
+- Stop: Stopped when the UE receives a REGISTRATION ACCEPT or REGISTRATION REJECT message from the AMF.
+- Default value: 15 seconds.
+- On expiry (1st to 4th expiry): UE retransmits the REGISTRATION REQUEST message and resets timer T3510.
+- On 5th expiry: UE aborts the registration procedure, resets the retry count, and enters 5GMM-DEREGISTERED.ATTEMPTING-TO-REGISTER state.
+
+
+Chapter/Section: 10.2.4
+Section Title: 5GS NAS Timers - T3512 Timer
+Page: 114
+----------------------------------------
+Timer T3512 is the Periodic Registration Update timer maintained at the UE.
+- Start: Started when the UE enters 5GMM-REGISTERED state and periodic registration update is enabled.
+- Stop: Stopped when the UE initiates a Registration procedure or enters 5GMM-DEREGISTERED state.
+- Default value: Provided by the AMF in the REGISTRATION ACCEPT message (typically 54 minutes or up to 186 hours depending on configuration).
+- On expiry: UE initiates a Periodic Registration Update procedure by sending a REGISTRATION REQUEST message.
+

@@ -1,0 +1,21 @@
+Specification: TS 29.502
+Title: 5G System; Session Management Services; Stage 3
+Release: Rel-18
+Version: 18.3.0
+Source URL: https://www.3gpp.org/ftp/Specs/archive/29_series/29.502/
+============================================================
+
+Chapter/Section: 5.2.2.2
+Section Title: Nsmf_PDUSession CreateSMContext Service Operation
+Page: 35
+----------------------------------------
+The Nsmf_PDUSession_CreateSMContext service operation allows the AMF to request the SMF to create an SM context for a PDU session.
+The HTTP POST method is used on the resource URI: '/nsmf-pdusession/v1/sm-contexts'.
+Request payload includes:
+- supi or gpsi (Subscriber identifier)
+- pduSessionId
+- dnn (Data Network Name)
+- sNssai (Single Network Slice Selection Assistance Information)
+- amfId & amfUri
+- userLocation (User Location Information in 3GPP RAN).
+

@@ -1,0 +1,18 @@
+Specification: TS 38.331
+Title: NR; Radio Resource Control (RRC) Protocol Specification
+Release: Rel-18
+Version: 18.1.0
+Source URL: https://www.3gpp.org/ftp/Specs/archive/38_series/38.331/
+============================================================
+
+Chapter/Section: 5.3.3
+Section Title: RRC Connection Establishment
+Page: 55
+----------------------------------------
+The RRC Connection Establishment procedure is used to establish an RRC connection between UE and gNB.
+Procedure:
+1. UE transitions from RRC_IDLE to RRC_CONNECTED.
+2. UE sends RRCSetupRequest message on CCCH.
+3. gNB responds with RRCSetup message containing dedicated radio resource configurations.
+4. UE configures radio resources and transmits RRCSetupComplete message on DCCH, including piggybacked NAS Registration Request.
+

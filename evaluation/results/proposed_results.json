@@ -1,0 +1,305 @@
+{
+  "metrics": {
+    "total_questions": 10,
+    "answerable_questions": 8,
+    "unanswerable_questions": 2,
+    "recall_at_5": 100.0,
+    "recall_at_10": 100.0,
+    "citation_accuracy": 100.0,
+    "refusal_accuracy": 100.0,
+    "groundedness_rate": 100.0,
+    "hallucination_rate": 0.0
+  },
+  "details": [
+    {
+      "id": "q1",
+      "question": "What is the role of the AMF during UE registration?",
+      "category": "Direct factual questions",
+      "is_answerable": true,
+      "expected_spec": "23.501",
+      "expected_section": "5.3.2",
+      "answer": "According to 3GPP TS 23.501 (Rel-18), Section 5.3.2 ('Registration Management and Role of AMF'):\n\nThe Access and Mobility Management Function (AMF) includes the following key functionalities: - Termination of RAN CP interface (N2). - Termination of NAS (N1), NAS ciphering and integrity protection. - Registration management, Connection management, Reachability management, Mobility Management. - Transport for User Plane (UP) security activation between UE and RAN. - Transport for Session Management messages between UE and SMF. - AMF performs authorization of UE registration and authentication handling in coordination with AUSF/UDM. During UE registration, the AMF processes the Registration Request received over N1 from the UE or forwarded over N2 by the gNB, allocates a 5G-GUTI if applicable, and manages the UE registration context. A UE registers with the 5G System to receive services, perform mobility updates, or re-establish session management. Step 1: UE sends an AN message containing NAS Registration Request to gNB over the N1/Radio interface. Step 2: gNB selects an AMF and forwards the NAS Registration Request over the N2 interface via N2 Initial UE Message. Step 3: If the selected AMF has changed, the new AMF sends Namf_Communication_UEContextTransfer to the old AMF to retrieve the UE context. Step 4: Authentication and Security checks are executed with AUSF and UDM. Step 5: AMF sends Registration Accept message containing 5G-GUTI, Allowed NSSAI, and T3512 timer values to the UE. Timer T3510 is a 5GS NAS timer maintained at the UE side during the Registration procedure. - Start: Started when the UE transmits a REGISTRATION REQUEST message to the network over NAS. - Stop: Stopped when the UE receives a REGISTRATION ACCEPT or REGISTRATION REJECT message from the AMF. - Default value: 15 seconds. - On expiry (1st to 4th expiry): UE retransmits the REGISTRATION REQUEST message and resets timer T3510. - On 5th expiry: UE aborts the registration procedure, resets the retry count, and enters 5GMM-DEREGISTERED.ATTEMPTING-TO-REGISTER state.\n\n(Citation: TS 23.501, Rel-18, Section 5.3.2, Page 42)",
+      "grounded": true,
+      "confidence": 0.99,
+      "retrieved_specs": [
+        "23.501",
+        "23.502",
+        "24.501",
+        "23.502",
+        "24.501"
+      ],
+      "retrieved_sections": [
+        "5.3.2",
+        "4.2.2",
+        "10.2.1",
+        "4.3.2",
+        "10.2.4"
+      ],
+      "cited_specs": [
+        "23.501",
+        "23.502",
+        "24.501",
+        "23.502",
+        "24.501"
+      ]
+    },
+    {
+      "id": "q2",
+      "question": "According to TS 24.501, what is T3510?",
+      "category": "Specification-specific questions",
+      "is_answerable": true,
+      "expected_spec": "24.501",
+      "expected_section": "10.2.1",
+      "answer": "According to 3GPP TS 24.501 (Rel-18), Section 10.2.1 ('5GS NAS Timers - T3510 Timer'):\n\nTimer T3510 is a 5GS NAS timer maintained at the UE side during the Registration procedure. - Start: Started when the UE transmits a REGISTRATION REQUEST message to the network over NAS. - Stop: Stopped when the UE receives a REGISTRATION ACCEPT or REGISTRATION REJECT message from the AMF. - Default value: 15 seconds. - On expiry (1st to 4th expiry): UE retransmits the REGISTRATION REQUEST message and resets timer T3510. - On 5th expiry: UE aborts the registration procedure, resets the retry count, and enters 5GMM-DEREGISTERED.ATTEMPTING-TO-REGISTER state. Timer T3512 is the Periodic Registration Update timer maintained at the UE. - Start: Started when the UE enters 5GMM-REGISTERED state and periodic registration update is enabled. - Stop: Stopped when the UE initiates a Registration procedure or enters 5GMM-DEREGISTERED state. - Default value: Provided by the AMF in the REGISTRATION ACCEPT message (typically 54 minutes or up to 186 hours depending on configuration). - On expiry: UE initiates a Periodic Registration Update procedure by sending a REGISTRATION REQUEST message.\n\n(Citation: TS 24.501, Rel-18, Section 10.2.1, Page 110)",
+      "grounded": true,
+      "confidence": 0.99,
+      "retrieved_specs": [
+        "24.501",
+        "24.501"
+      ],
+      "retrieved_sections": [
+        "10.2.1",
+        "10.2.4"
+      ],
+      "cited_specs": [
+        "24.501",
+        "24.501"
+      ]
+    },
+    {
+      "id": "q3",
+      "question": "What happens during the 5G registration procedure?",
+      "category": "Procedure questions",
+      "is_answerable": true,
+      "expected_spec": "23.502",
+      "expected_section": "4.2.2",
+      "answer": "According to 3GPP TS 24.501 (Rel-18), Section 10.2.1 ('5GS NAS Timers - T3510 Timer'):\n\nTimer T3510 is a 5GS NAS timer maintained at the UE side during the Registration procedure. - Start: Started when the UE transmits a REGISTRATION REQUEST message to the network over NAS. - Stop: Stopped when the UE receives a REGISTRATION ACCEPT or REGISTRATION REJECT message from the AMF. - Default value: 15 seconds. - On expiry (1st to 4th expiry): UE retransmits the REGISTRATION REQUEST message and resets timer T3510. - On 5th expiry: UE aborts the registration procedure, resets the retry count, and enters 5GMM-DEREGISTERED.ATTEMPTING-TO-REGISTER state. A UE registers with the 5G System to receive services, perform mobility updates, or re-establish session management. Step 1: UE sends an AN message containing NAS Registration Request to gNB over the N1/Radio interface. Step 2: gNB selects an AMF and forwards the NAS Registration Request over the N2 interface via N2 Initial UE Message. Step 3: If the selected AMF has changed, the new AMF sends Namf_Communication_UEContextTransfer to the old AMF to retrieve the UE context. Step 4: Authentication and Security checks are executed with AUSF and UDM. Step 5: AMF sends Registration Accept message containing 5G-GUTI, Allowed NSSAI, and T3512 timer values to the UE. Timer T3512 is the Periodic Registration Update timer maintained at the UE. - Start: Started when the UE enters 5GMM-REGISTERED state and periodic registration update is enabled. - Stop: Stopped when the UE initiates a Registration procedure or enters 5GMM-DEREGISTERED state. - Default value: Provided by the AMF in the REGISTRATION ACCEPT message (typically 54 minutes or up to 186 hours depending on configuration). - On expiry: UE initiates a Periodic Registration Update procedure by sending a REGISTRATION REQUEST message.\n\n(Citation: TS 24.501, Rel-18, Section 10.2.1, Page 110)",
+      "grounded": true,
+      "confidence": 0.99,
+      "retrieved_specs": [
+        "24.501",
+        "23.502",
+        "24.501",
+        "23.501",
+        "23.501"
+      ],
+      "retrieved_sections": [
+        "10.2.1",
+        "4.2.2",
+        "10.2.4",
+        "5.3.2",
+        "5.1"
+      ],
+      "cited_specs": [
+        "24.501",
+        "23.502",
+        "24.501",
+        "23.501",
+        "23.501"
+      ]
+    },
+    {
+      "id": "q4",
+      "question": "What are the key functions of the UPF?",
+      "category": "Entity-specific questions",
+      "is_answerable": true,
+      "expected_spec": "23.501",
+      "expected_section": "5.6.1",
+      "answer": "According to 3GPP TS 23.501 (Rel-18), Section 5.6.1 ('Session Management and UPF Functions'):\n\nThe User Plane Function (UPF) handles user plane processing. UPF functionality includes: - Anchor point for Intra-/Inter-RAT mobility (when applicable). - External PDU session point of interconnect to Data Network (DN). - Packet routing & forwarding (e.g. support of Uplink classifier to route traffic flows to an instance of a data network). - Packet inspection and Quality of Service (QoS) handling for user plane. - Downlink packet buffering and Downlink data notification triggering. The Access and Mobility Management Function (AMF) includes the following key functionalities: - Termination of RAN CP interface (N2). - Termination of NAS (N1), NAS ciphering and integrity protection. - Registration management, Connection management, Reachability management, Mobility Management. - Transport for User Plane (UP) security activation between UE and RAN. - Transport for Session Management messages between UE and SMF. - AMF performs authorization of UE registration and authentication handling in coordination with AUSF/UDM. During UE registration, the AMF processes the Registration Request received over N1 from the UE or forwarded over N2 by the gNB, allocates a 5G-GUTI if applicable, and manages the UE registration context. The 5G System architecture is defined as service-based and data-centric. The architecture supports data connectivity and services enabling deployments to use techniques such as Network Function Virtualization (NFV) and Software Defined Networking (SDN). The 5G system architecture consists of network functions (NFs) such as AMF, SMF, UPF, PCF, UDM, and AUSF.\n\n(Citation: TS 23.501, Rel-18, Section 5.6.1, Page 68)",
+      "grounded": true,
+      "confidence": 0.99,
+      "retrieved_specs": [
+        "23.501",
+        "23.501",
+        "23.501",
+        "23.502",
+        "23.501"
+      ],
+      "retrieved_sections": [
+        "5.6.1",
+        "5.3.2",
+        "5.1",
+        "4.3.2",
+        "5.8.2"
+      ],
+      "cited_specs": [
+        "23.501",
+        "23.501",
+        "23.501",
+        "23.502",
+        "23.501"
+      ]
+    },
+    {
+      "id": "q5",
+      "question": "How do AMF and SMF interact during PDU Session Establishment?",
+      "category": "Cross-section questions",
+      "is_answerable": true,
+      "expected_spec": "23.502",
+      "expected_section": "4.3.2",
+      "answer": "According to 3GPP TS 23.502 (Rel-18), Section 4.3.2 ('UE Requested PDU Session Establishment'):\n\nPDU Session Establishment allows the UE to establish a data path to a Data Network (DN). Step 1: UE sends a NAS message containing PDU Session Establishment Request to the AMF over N1. Step 2: AMF selects an SMF based on DNN and S-NSSAI, and invokes Nsmf_PDUSession_CreateSMContext. Step 3: SMF authenticates session parameters, selects a UPF, establishes N4 session with UPF, and assigns an IP address to the UE. Step 4: SMF responds to AMF, which sends N2 PDU Session Request containing N3 tunnel info to gNB. The Nsmf_PDUSession_CreateSMContext service operation allows the AMF to request the SMF to create an SM context for a PDU session. The HTTP POST method is used on the resource URI: '/nsmf-pdusession/v1/sm-contexts'. Request payload includes: - supi or gpsi (Subscriber identifier) - pduSessionId - dnn (Data Network Name) - sNssai (Single Network Slice Selection Assistance Information) - amfId & amfUri - userLocation (User Location Information in 3GPP RAN). The Access and Mobility Management Function (AMF) includes the following key functionalities: - Termination of RAN CP interface (N2). - Termination of NAS (N1), NAS ciphering and integrity protection. - Registration management, Connection management, Reachability management, Mobility Management. - Transport for User Plane (UP) security activation between UE and RAN. - Transport for Session Management messages between UE and SMF. - AMF performs authorization of UE registration and authentication handling in coordination with AUSF/UDM. During UE registration, the AMF processes the Registration Request received over N1 from the UE or forwarded over N2 by the gNB, allocates a 5G-GUTI if applicable, and manages the UE registration context.\n\n(Citation: TS 23.502, Rel-18, Section 4.3.2, Page 75)",
+      "grounded": true,
+      "confidence": 0.99,
+      "retrieved_specs": [
+        "23.502",
+        "29.502",
+        "23.501",
+        "23.502",
+        "23.501"
+      ],
+      "retrieved_sections": [
+        "4.3.2",
+        "5.2.2.2",
+        "5.3.2",
+        "4.2.2",
+        "5.6.1"
+      ],
+      "cited_specs": [
+        "23.502",
+        "29.502",
+        "23.501",
+        "23.502",
+        "23.501"
+      ]
+    },
+    {
+      "id": "q6",
+      "question": "In Rel-18 TS 24.501, what is the default value of timer T3512?",
+      "category": "Release-specific questions",
+      "is_answerable": true,
+      "expected_spec": "24.501",
+      "expected_section": "10.2.4",
+      "answer": "According to 3GPP TS 24.501 (Rel-18), Section 10.2.4 ('5GS NAS Timers - T3512 Timer'):\n\nTimer T3512 is the Periodic Registration Update timer maintained at the UE. - Start: Started when the UE enters 5GMM-REGISTERED state and periodic registration update is enabled. - Stop: Stopped when the UE initiates a Registration procedure or enters 5GMM-DEREGISTERED state. - Default value: Provided by the AMF in the REGISTRATION ACCEPT message (typically 54 minutes or up to 186 hours depending on configuration). - On expiry: UE initiates a Periodic Registration Update procedure by sending a REGISTRATION REQUEST message. Timer T3510 is a 5GS NAS timer maintained at the UE side during the Registration procedure. - Start: Started when the UE transmits a REGISTRATION REQUEST message to the network over NAS. - Stop: Stopped when the UE receives a REGISTRATION ACCEPT or REGISTRATION REJECT message from the AMF. - Default value: 15 seconds. - On expiry (1st to 4th expiry): UE retransmits the REGISTRATION REQUEST message and resets timer T3510. - On 5th expiry: UE aborts the registration procedure, resets the retry count, and enters 5GMM-DEREGISTERED.ATTEMPTING-TO-REGISTER state.\n\n(Citation: TS 24.501, Rel-18, Section 10.2.4, Page 114)",
+      "grounded": true,
+      "confidence": 0.99,
+      "retrieved_specs": [
+        "24.501",
+        "24.501"
+      ],
+      "retrieved_sections": [
+        "10.2.4",
+        "10.2.1"
+      ],
+      "cited_specs": [
+        "24.501",
+        "24.501"
+      ]
+    },
+    {
+      "id": "q7",
+      "question": "What is the quantum encryption key distribution algorithm in 6G Rel-21?",
+      "category": "Unanswerable questions",
+      "is_answerable": false,
+      "expected_spec": null,
+      "expected_section": null,
+      "answer": "I could not find sufficient evidence in the indexed 3GPP specifications to answer this reliably.",
+      "grounded": false,
+      "confidence": -6.77,
+      "retrieved_specs": [
+        "23.502",
+        "24.501",
+        "23.501",
+        "23.501",
+        "24.501"
+      ],
+      "retrieved_sections": [
+        "4.2.2",
+        "10.2.1",
+        "5.3.2",
+        "5.8.2",
+        "10.2.4"
+      ],
+      "cited_specs": []
+    },
+    {
+      "id": "q8",
+      "question": "How many coffee cups are consumed by 3GPP delegates per session?",
+      "category": "Unanswerable questions",
+      "is_answerable": false,
+      "expected_spec": null,
+      "expected_section": null,
+      "answer": "I could not find sufficient evidence in the indexed 3GPP specifications to answer this reliably.",
+      "grounded": false,
+      "confidence": -10.54,
+      "retrieved_specs": [
+        "29.502",
+        "23.502",
+        "23.502",
+        "23.501",
+        "24.501"
+      ],
+      "retrieved_sections": [
+        "5.2.2.2",
+        "4.3.2",
+        "4.2.2",
+        "5.3.2",
+        "10.2.1"
+      ],
+      "cited_specs": []
+    },
+    {
+      "id": "q9",
+      "question": "What is the Service Based Interface for UDM?",
+      "category": "Direct factual questions",
+      "is_answerable": true,
+      "expected_spec": "23.501",
+      "expected_section": "5.8.2",
+      "answer": "According to 3GPP TS 23.501 (Rel-18), Section 5.8.2 ('Service Based Interfaces and Network Functions'):\n\nThe 5G System relies on Service Based Interfaces (SBI) in the Control Plane. Network Functions export services via HTTP/2 and JSON REST APIs. - Namf: Service provided by AMF. - Nsmf: Service provided by SMF. - Nudm: Service provided by UDM. - Npcf: Service provided by PCF. The 5G System architecture is defined as service-based and data-centric. The architecture supports data connectivity and services enabling deployments to use techniques such as Network Function Virtualization (NFV) and Software Defined Networking (SDN). The 5G system architecture consists of network functions (NFs) such as AMF, SMF, UPF, PCF, UDM, and AUSF. A UE registers with the 5G System to receive services, perform mobility updates, or re-establish session management. Step 1: UE sends an AN message containing NAS Registration Request to gNB over the N1/Radio interface. Step 2: gNB selects an AMF and forwards the NAS Registration Request over the N2 interface via N2 Initial UE Message. Step 3: If the selected AMF has changed, the new AMF sends Namf_Communication_UEContextTransfer to the old AMF to retrieve the UE context. Step 4: Authentication and Security checks are executed with AUSF and UDM. Step 5: AMF sends Registration Accept message containing 5G-GUTI, Allowed NSSAI, and T3512 timer values to the UE.\n\n(Citation: TS 23.501, Rel-18, Section 5.8.2, Page 95)",
+      "grounded": true,
+      "confidence": 0.99,
+      "retrieved_specs": [
+        "23.501",
+        "23.501",
+        "23.502",
+        "23.501",
+        "29.502"
+      ],
+      "retrieved_sections": [
+        "5.8.2",
+        "5.1",
+        "4.2.2",
+        "5.3.2",
+        "5.2.2.2"
+      ],
+      "cited_specs": [
+        "23.501",
+        "23.501",
+        "23.502",
+        "23.501",
+        "29.502"
+      ]
+    },
+    {
+      "id": "q10",
+      "question": "Describe the RRC Connection Establishment procedure.",
+      "category": "Procedure questions",
+      "is_answerable": true,
+      "expected_spec": "38.331",
+      "expected_section": "5.3.3",
+      "answer": "According to 3GPP TS 38.331 (Rel-18), Section 5.3.3 ('RRC Connection Establishment'):\n\nThe RRC Connection Establishment procedure is used to establish an RRC connection between UE and gNB. Procedure: 1. UE transitions from RRC_IDLE to RRC_CONNECTED. 2. UE sends RRCSetupRequest message on CCCH. 3. gNB responds with RRCSetup message containing dedicated radio resource configurations. 4. UE configures radio resources and transmits RRCSetupComplete message on DCCH, including piggybacked NAS Registration Request. PDU Session Establishment allows the UE to establish a data path to a Data Network (DN). Step 1: UE sends a NAS message containing PDU Session Establishment Request to the AMF over N1. Step 2: AMF selects an SMF based on DNN and S-NSSAI, and invokes Nsmf_PDUSession_CreateSMContext. Step 3: SMF authenticates session parameters, selects a UPF, establishes N4 session with UPF, and assigns an IP address to the UE. Step 4: SMF responds to AMF, which sends N2 PDU Session Request containing N3 tunnel info to gNB. A UE registers with the 5G System to receive services, perform mobility updates, or re-establish session management. Step 1: UE sends an AN message containing NAS Registration Request to gNB over the N1/Radio interface. Step 2: gNB selects an AMF and forwards the NAS Registration Request over the N2 interface via N2 Initial UE Message. Step 3: If the selected AMF has changed, the new AMF sends Namf_Communication_UEContextTransfer to the old AMF to retrieve the UE context. Step 4: Authentication and Security checks are executed with AUSF and UDM. Step 5: AMF sends Registration Accept message containing 5G-GUTI, Allowed NSSAI, and T3512 timer values to the UE.\n\n(Citation: TS 38.331, Rel-18, Section 5.3.3, Page 55)",
+      "grounded": true,
+      "confidence": 0.99,
+      "retrieved_specs": [
+        "38.331",
+        "23.502",
+        "23.502",
+        "23.501",
+        "24.501"
+      ],
+      "retrieved_sections": [
+        "5.3.3",
+        "4.3.2",
+        "4.2.2",
+        "5.3.2",
+        "10.2.1"
+      ],
+      "cited_specs": [
+        "38.331",
+        "23.502",
+        "23.502",
+        "23.501",
+        "24.501"
+      ]
+    }
+  ]
+}
