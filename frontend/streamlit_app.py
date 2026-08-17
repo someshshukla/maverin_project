@@ -1,3 +1,11 @@
+import sys
+from pathlib import Path
+
+# Add project root directory to sys.path so 'app' module can be imported anywhere
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
 import streamlit as st
 import requests
 import os
@@ -205,7 +213,7 @@ if active_query:
                 response = requests.post(
                     f"{API_URL}/chat",
                     json={"question": active_query},
-                    timeout=5
+                    timeout=1
                 )
                 if response.status_code == 200:
                     data = response.json()
