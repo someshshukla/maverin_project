@@ -54,18 +54,34 @@ class GroundedGenerator:
         )
         return answer
 
-    def _call_llm_api(self, question: str, evidence_text: str, strict_retry: bool = False) -> str:
-        """Calls configured LLM provider or mock engine."""
-        if self.provider == "openai" and settings.OPENAI_API_KEY and settings.OPENAI_API_KEY != "mock-key":
+    def _call_llm_api(self, question: str, evidence_text: str, evidence_chunks: List[Tuple[ChunkMetadata, float]], strict_retry: bool = False) -> str:
+        """Calls configured LLM provider (OpenAI or Groq) or mock engine."""
+        api_key = None
+        base_url = None
+        model = settings.LLM_MODEL
+
+        if self.provider == "groq":
+            api_key = settings.GROQ_API_KEY or os.getenv("GROQ_API_KEY")
+            base_url = "https://api.groq.com/openai/v1"
+            if model == "gpt-4o-mini":
+                model = "llama-3.3-70b-versatile"
+        elif self.provider == "openai":
+            api_key = settings.OPENAI_API_KEY or os.getenv("OPENAI_API_KEY")
+
+        if api_key and api_key != "mock-key":
             try:
                 import openai
-                client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
+                kwargs = {"api_key": api_key}
+                if base_url:
+                    kwargs["base_url"] = base_url
+                client = openai.OpenAI(**kwargs)
+
                 prompt = USER_PROMPT_TEMPLATE.format(question=question, evidence_text=evidence_text)
                 if strict_retry:
                     prompt += "\nWARNING: Previous answer contained ungrounded claims. Strictly restrict answer to explicit words in evidence."
-                    
+
                 response = client.chat.completions.create(
-                    model=settings.LLM_MODEL,
+                    model=model,
                     messages=[
                         {"role": "system", "content": GROUNDED_SYSTEM_PROMPT},
                         {"role": "user", "content": prompt}
@@ -74,10 +90,10 @@ class GroundedGenerator:
                 )
                 return response.choices[0].message.content.strip()
             except Exception as e:
-                logger.error(f"OpenAI API call failed: {e}. Falling back to mock generator.")
-                
-        # Mock / Fallback engine
-        return self._generate_mock_answer(question, [])
+                logger.error(f"{self.provider.upper()} API call failed: {e}. Falling back to mock generator.")
+
+        # Fallback engine using evidence_chunks
+        return self._generate_mock_answer(question, evidence_chunks)
 
     def generate_answer(self, question: str, evidence_chunks: List[Tuple[ChunkMetadata, float]]) -> ChatResponse:
         """Generates grounded answer with evidence sufficiency checks, claims verification, and controlled 1-retry mechanism."""
@@ -112,11 +128,7 @@ class GroundedGenerator:
         evidence_text = self._format_evidence_text(evidence_chunks)
         
         # 3. Generate raw answer
-        raw_answer = (
-            self._call_llm_api(question, evidence_text)
-            if self.provider == "openai" and settings.OPENAI_API_KEY and settings.OPENAI_API_KEY != "mock-key"
-            else self._generate_mock_answer(question, evidence_chunks)
-        )
+        raw_answer = self._call_llm_api(question, evidence_text, evidence_chunks)
         
         # 4. Perform Claim-Level Verification
         is_grounded, claims = self.grounding_verifier.verify(raw_answer, evidence_chunks)
@@ -124,11 +136,7 @@ class GroundedGenerator:
         # 5. Controlled 1-Retry if ungrounded claims exist
         if not is_grounded and settings.MAX_RETRY_COUNT > 0:
             logger.info("Ungrounded claim detected. Triggering controlled 1-retry with strict grounding constraints...")
-            raw_answer = (
-                self._call_llm_api(question, evidence_text, strict_retry=True)
-                if self.provider == "openai" and settings.OPENAI_API_KEY and settings.OPENAI_API_KEY != "mock-key"
-                else self._generate_mock_answer(question, evidence_chunks)
-            )
+            raw_answer = self._call_llm_api(question, evidence_text, evidence_chunks, strict_retry=True)
             is_grounded, claims = self.grounding_verifier.verify(raw_answer, evidence_chunks)
 
         # 6. Format Sources & Evidence

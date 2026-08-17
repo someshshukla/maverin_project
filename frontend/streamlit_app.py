@@ -3,6 +3,14 @@ import requests
 import os
 import json
 
+# Sync Streamlit Cloud secrets into os.environ
+try:
+    for k, v in st.secrets.items():
+        if isinstance(v, str):
+            os.environ.setdefault(k, v)
+except Exception:
+    pass
+
 # Page configuration
 st.set_page_config(
     page_title="3GPP Standards AI Assistant",
